@@ -68,6 +68,9 @@
                 if(!e.target.dataset.hasOwnProperty("page")) return;
                 this.selectedPage = Math.max(Math.min(Number(e.target.dataset.page), this.pages.length - 1), 0);
             },
+            contextChanged:function(){
+                this.onRefreshData();
+            },
             onRefreshData:function(){
                 this.previousParams = undefined;
                 this.loadData();
