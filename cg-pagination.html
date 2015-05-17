@@ -69,15 +69,13 @@
                 this.selectedPage = Math.max(Math.min(Number(e.target.dataset.page), this.pages.length - 1), 0);
             },
             reload:function(){
-                this.contextChanged();
-            },
-            contextChanged:function(){
-                this.onRefreshData();
-            },
-            onRefreshData:function(){
                 this.previousParams = undefined;
                 this.loadData();
             },
+//            contextChanged:function(force){
+//                this.previousParams = force === true ? undefined || this.previousParams;
+//                this.loadData();
+//            },
             selectedPageChanged:function(){
                 this.loadData(this.previousParams, true);
             },
