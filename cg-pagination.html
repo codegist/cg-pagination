@@ -1,104 +1,143 @@
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../core-icon-button/core-icon-button.html">
-<link rel="import" href="../cg-base/cg-base.html">
+<link rel="import" href="../paper-styles/paper-styles.html">
+<link rel="import" href="../iron-flex-layout/classes/iron-flex-layout.html">
+<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../font-awesome-polymer-icons/fa-icons.html">
 
-<polymer-element name="cg-pagination" extends="cg-base" attributes="pageSize paginationPages data">
-    <template>
-        <style>
-            :host {
-                font-family: sans-serif;
-                z-index:0;
-            }
-            .pagination-page {
-                min-width:15px;
-                height:15px;
-                display:inline-block;
-                text-align: center;
-                cursor:pointer;
-                color:white;
-                font-size:12px;
-                margin:2px;
-                padding:3px;
-                background-color: #0097FF;
-                border-radius: 5px;
-            }
-            .pagination-page.selected {
-                font-weight: bold;
-                background-color: #005ba2;
-            }
-            :host .pagination-page-btn /deep/ core-icon {
-                color:rgb(0, 150, 136)!important;
-                width:16px!important;
-                height:16px!important;
-            }
-        </style>
-        <div class="pagination-wrapper" on-tap="{{changePage}}" layout horizontal>
-            <core-icon-button icon="fa:fast-backward" data-page="{{0}}" class="first-page pagination-page-btn" disabled?="{{selectedPage == 0}}"></core-icon-button>
-            <core-icon-button icon="fa:backward" data-page="{{selectedPage - 1}}" class="previous-page pagination-page-btn" disabled?="{{selectedPage == 0}}"></core-icon-button>
-            <div flex layout horizontal center-justified center>
-                <template repeat="{{pages as p}}">
-                    <template if="{{showPaginationPage(p, selectedPage, data, pageSize, paginationPages)}}">
-                        <div class="pagination-page {{selectedPage == p?'selected':''}}" data-page="{{p}}">{{p + 1}}</div>
-                    </template>
+<dom-module is="cg-pagination">
+<style>
+    :host {
+        @apply(--paper-font-body1);
+        z-index:0;
+    }
+    .pagination-wrapper .pagination-page {
+        min-width:20px;
+        display:inline-block;
+        text-align: center;
+        cursor:pointer;
+        color:white;
+        font-size:12px;
+        margin:2px;
+        padding:3px;
+        background-color: #0097FF;
+        border-radius: 5px;
+    }
+    .pagination-wrapper .pagination-page.selected {
+        font-weight: bold;
+        background-color: #005ba2;
+    }
+    .pagination-wrapper .pagination-page-btn {
+        width:20px;
+        height:20px;
+        min-width: 20px ;
+    }
+    .pagination-wrapper .pagination-page-btn ::content .content {
+        padding:0px;
+        margin:0px;
+    }
+    .pagination-wrapper .pagination-page-btn ::content iron-icon {
+        color:rgb(0, 150, 136);
+        width:16px;
+        height:16px;
+        margin:0px;
+    }
+</style>
+<template>
+    <div class="pagination-wrapper layout horizontal" on-tap="changePage">
+        <paper-button data-page="1" class="first-page pagination-page-btn" disabled$="[[equals(selectedPage, 1)]]">
+            <iron-icon icon="fa:fast-backward" data-page="1" ></iron-icon>
+        </paper-button>
+        <paper-button icon="fa:backward" data-add="-1" class="previous-page pagination-page-btn" disabled$="[[equals(selectedPage, 1)]]">
+            <iron-icon icon="fa:backward" data-add="-1" ></iron-icon>
+        </paper-button>
+        <div class="flex layout horizontal center-justified">
+            <template is="dom-repeat" items="[[pages]]" as="p">
+                <template is="dom-if" if="[[showPaginationPage(p, selectedPage, data, pageSize, paginationPages)]]">
+                    <div class$="[[computePaginationItemClass(selectedPage, p)]]" data-page$="[[p]]">[[p]]</div>
                 </template>
-            </div>
-            <core-icon-button icon="fa:forward" data-page="{{selectedPage + 1}}" class="next-page pagination-page-btn" disabled?="{{selectedPage == pages.length - 1}}"></core-icon-button>
-            <core-icon-button icon="fa:fast-forward" data-page="{{pages.length - 1}}" class="last-page pagination-page-btn" disabled?="{{selectedPage == pages.length - 1}}"></core-icon-button>
+            </template>
         </div>
-    </template>
-    <script>
-        Polymer('cg-pagination', {
-            data:null,
-            pages:null,
-            paginationPages:10,
-            pageSize:10,
-            selectedPage:0,
-            previousParams:undefined,
-            domReady:function(){
-                this.super();
-                this.loadData();
+        <paper-button icon="fa:forward" data-add="1" class="next-page pagination-page-btn" disabled$="[[equals(selectedPage, pages.length)]]">
+            <iron-icon icon="fa:forward" data-add="1" ></iron-icon>
+        </paper-button>
+        <paper-button icon="fa:fast-forward" data-page$="[[pages.length]]" class="last-page pagination-page-btn" disabled$="[[equals(selectedPage, pages.length)]]">
+            <iron-icon icon="fa:fast-forward" data-page$="[[pages.length]]"></iron-icon>
+        </paper-button>
+    </div>
+</template>
+</dom-module>
+<script>
+    Polymer({
+        is:'cg-pagination',
+        properties:{
+            data:{
+                type:Object,
+                notify:true,
+                observer:'dataChanged'
             },
-            showPaginationPage:function(p, selectedPage, data, pageSize, paginationPages){
-                // TODO refactor this, no need for having full page list
-                return p >= Math.max(Math.min(selectedPage - (paginationPages/2), this.pages.length - paginationPages), 0)
-                        && p < Math.min(Math.max(selectedPage + (paginationPages/2), paginationPages), this.pages.length);
+            cgName:String,
+            pages:Array,
+            paginationPages:{
+                type:Number,
+                value:10
             },
-            changePage:function(e){
-                if(!e.target.dataset.hasOwnProperty("page")) return;
-                this.selectedPage = Math.max(Math.min(Number(e.target.dataset.page), this.pages.length - 1), 0);
+            pageSize:{
+                type:Number,
+                value:10
             },
-            reload:function(){
-                this.previousParams = undefined;
-                this.loadData();
+            selectedPage:{
+                type:Number,
+                observer:'selectedPageChanged'
             },
-//            contextChanged:function(force){
-//                this.previousParams = force === true ? undefined || this.previousParams;
-//                this.loadData();
-//            },
-            selectedPageChanged:function(){
-                this.loadData(this.previousParams, true);
-            },
-            dataChanged:function(){
-                this.pages = this.data ? Array.apply(null, {length: Math.max(1, Math.ceil(this.data.total / this.pageSize))}).map(Number.call, Number) : [];
-            },
-            loadData:function(params, pageChanged){
-                this.selectedPage = pageChanged === true ? this.selectedPage : 0;
-                this.previousParams = params || this.previousParams;
-                this.fireDataRequest({
-                    type:'data',
-                    params:{
-                        params:this.previousParams,
-                        pageSize:this.pageSize,
-                        page:this.selectedPage+1
-                    },
-                    success:function(response){
-                        this.data = response.data;
-                    }.bind(this),
-                    failure:function(response){}.bind(this)
-                });
-            }
-        });
-    </script>
-</polymer-element>
+            previousParams:Object
+        },
+        behaviors:[CG.BaseBehavior],
+        computePaginationItemClass : function(selectedPage, p){
+            return "pagination-page " + (selectedPage == p ? 'selected' : '');
+        },
+        showPaginationPage:function(p, selectedPage, data, pageSize, paginationPages){
+            // TODO refactor this, no need for having full page list
+            p--;
+            return p >= Math.max(Math.min(selectedPage - (paginationPages/2), this.pages.length - paginationPages), 0)
+                    && p < Math.min(Math.max(selectedPage + (paginationPages/2), paginationPages), this.pages.length);
+        },
+        changePage:function(e){
+            var page = e.target.dataset.page;
+            var add = e.target.dataset.add;
+            if(!page && !add) return;
+            page = Number(page || this.selectedPage + Number(add));
+            this.selectedPage = Math.max(Math.min(page, this.pages.length), 1);
+        },
+        reload:function(){
+            this.previousParams = undefined;
+            this.loadData();
+        },
+        selectedPageChanged:function(){
+            this.loadData(this.previousParams, true);
+        },
+        dataChanged:function(){
+            var min = 1;
+            var max = Math.max(1, Math.ceil(this.data.total / this.pageSize));
+            this.pages = this.data ? Array.apply(null, {length: max}).map(function(e,i){ return i + min;}) : [];
+        },
+        loadData:function(params, pageChanged){
+            this.selectedPage = pageChanged === true ? this.selectedPage : 1;
+            this.previousParams = params || this.previousParams;
+            this.fireDataRequest({
+                type:'data',
+                params:{
+                    params:this.previousParams,
+                    pageSize:this.pageSize,
+                    page:this.selectedPage
+                },
+                success:function(response){
+                    this.data = response.data;
+                }.bind(this),
+                failure:function(response){}.bind(this)
+            });
+        }
+    });
+</script>
 
