@@ -55,7 +55,7 @@
         <div class="flex layout horizontal center-justified">
             <template is="dom-repeat" items="[[pages]]" as="p">
                 <template is="dom-if" if="[[showPaginationPage(p, selectedPage, data, pageSize, paginationPages)]]">
-                    <div class$="[[computePaginationItemClass(selectedPage, p)]]" data-page$="[[p]]">[[p]]</div>
+                    <div class$="[[ifEqualsTo(selectedPage, p, 'pagination-page selected', 'pagination-page')]]" data-page$="[[p]]">[[p]]</div>
                 </template>
             </template>
         </div>
@@ -72,6 +72,9 @@
     Polymer({
         is:'cg-pagination',
         properties:{
+            listensTo:{
+                value:[]
+            },
             data:{
                 type:{},
                 notify:true,
@@ -89,19 +92,17 @@
             },
             selectedPage:{
                 type:Number,
-                observer:'selectedPageChanged'
+                value:1
             },
             previousParams:Object
         },
         behaviors:[CG.BaseBehavior],
-        computePaginationItemClass : function(selectedPage, p){
-            return "pagination-page " + (selectedPage == p ? 'selected' : '');
-        },
+
         showPaginationPage:function(p, selectedPage, data, pageSize, paginationPages){
             // TODO refactor this, no need for having full page list
             p--;
-            return p >= Math.max(Math.min(selectedPage - (paginationPages/2), this.pages.length - paginationPages), 0)
-                    && p < Math.min(Math.max(selectedPage + (paginationPages/2), paginationPages), this.pages.length);
+            return p >= Math.max(Math.min(selectedPage - Math.ceil(paginationPages/2), this.pages.length - paginationPages), 0)
+                    && p < Math.min(Math.max(selectedPage + Math.floor(paginationPages/2), paginationPages), this.pages.length);
         },
         changePage:function(e){
             var page = e.target.dataset.page;
@@ -109,13 +110,11 @@
             if(!page && !add) return;
             page = Number(page || this.selectedPage + Number(add));
             this.selectedPage = Math.max(Math.min(page, this.pages.length), 1);
+            this.loadData(this.previousParams, true);
         },
         reload:function(){
             this.previousParams = undefined;
             this.loadData();
-        },
-        selectedPageChanged:function(){
-            this.loadData(this.previousParams, true);
         },
         dataChanged:function(){
             var min = 1;
