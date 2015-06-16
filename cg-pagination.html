@@ -5,6 +5,8 @@
 <link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../paper-button/paper-button.html">
 <link rel="import" href="../font-awesome-polymer-icons/fa-icons.html">
+<link rel="import" href="../cg-behaviors/cg-base-behavior.html">
+<link rel="import" href="../cg-behaviors/cg-application-datasource-aware-behavior.html">
 
 <dom-module is="cg-pagination">
 <style>
@@ -72,9 +74,6 @@
     Polymer({
         is:'cg-pagination',
         properties:{
-            listensTo:{
-                value:[]
-            },
             data:{
                 type:{},
                 notify:true,
@@ -96,7 +95,7 @@
             },
             previousParams:Object
         },
-        behaviors:[CG.BaseBehavior],
+        behaviors:[CG.BaseBehavior, CG.ApplicationDataSourceAwareBehavior],
 
         showPaginationPage:function(p, selectedPage, data, pageSize, paginationPages){
             // TODO refactor this, no need for having full page list
