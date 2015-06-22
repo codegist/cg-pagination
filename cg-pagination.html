@@ -15,7 +15,9 @@
         z-index:0;
     }
     .pagination-wrapper .pagination-page {
-        min-width:20px;
+        min-width:15px;
+        height:15px;
+        line-height: 17px;
         display:inline-block;
         text-align: center;
         cursor:pointer;
@@ -30,10 +32,16 @@
         font-weight: bold;
         background-color: #005ba2;
     }
+    .pagination-wrapper .pagination-page-btn[disabled] {
+        background-color: transparent;
+    }
+    .pagination-wrapper .pagination-page-btn[disabled] ::content iron-icon{
+        color:var(--paper-grey-500);
+    }
     .pagination-wrapper .pagination-page-btn {
         width:20px;
         height:20px;
-        min-width: 20px ;
+        min-width: 20px;
     }
     .pagination-wrapper .pagination-page-btn ::content .content {
         padding:0px;
@@ -56,9 +64,7 @@
         </paper-button>
         <div class="flex layout horizontal center-justified">
             <template is="dom-repeat" items="[[pages]]" as="p">
-                <template is="dom-if" if="[[showPaginationPage(p, selectedPage, data, pageSize, paginationPages)]]">
-                    <div class$="[[ifEqualsTo(selectedPage, p, 'pagination-page selected', 'pagination-page')]]" data-page$="[[p]]">[[p]]</div>
-                </template>
+                <template is="dom-if" if="[[showPaginationPage(p, selectedPage, data, pageSize, paginationPages)]]"><div class$="[[ifEqualsTo(selectedPage, p, 'pagination-page selected', 'pagination-page')]]" data-page$="[[p]]">[[p]]</div></template>
             </template>
         </div>
         <paper-button icon="fa:forward" data-add="1" class="next-page pagination-page-btn" disabled$="[[equals(selectedPage, pages.length)]]">
