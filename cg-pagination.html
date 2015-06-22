@@ -81,10 +81,11 @@
         is:'cg-pagination',
         properties:{
             data:{
-                type:{},
+                type:Object,
                 notify:true,
                 observer:'dataChanged'
             },
+            owner:Object,
             cgName:String,
             pages:Array,
             paginationPages:{
@@ -131,6 +132,7 @@
             this.previousParams = params || this.previousParams;
             this.fireDataRequest({
                 type:'data',
+                source:this.owner || this,
                 params:{
                     params:this.previousParams,
                     pageSize:this.pageSize,
